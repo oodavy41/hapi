@@ -8,13 +8,7 @@ import { SessionActionMenu } from '@/components/SessionActionMenu'
 import { RenameSessionDialog } from '@/components/RenameSessionDialog'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { CopyIcon, CheckIcon } from '@/components/icons'
-import { getSessionModelLabel } from '@/lib/sessionModelLabel'
 import { useTranslation } from '@/lib/use-translation'
-import ClaudeColor from '@lobehub/icons/es/Claude/components/Color'
-import CodexColor from '@lobehub/icons/es/Codex/components/Color'
-import CursorMono from '@lobehub/icons/es/Cursor/components/Mono'
-import GeminiColor from '@lobehub/icons/es/Gemini/components/Color'
-import OpenCodeMono from '@lobehub/icons/es/OpenCode/components/Mono'
 
 type SessionGroup = {
     key: string
@@ -249,24 +243,39 @@ function getTodoProgress(session: SessionSummary): { completed: number; total: n
     return session.todoProgress
 }
 
-function getAgentLabel(session: SessionSummary): string {
-    const flavor = session.metadata?.flavor?.trim()
-    if (flavor) return flavor
-    return 'unknown'
-}
-
-const FLAVOR_ICONS: Record<string, React.ComponentType<{ className?: string; size?: number }>> = {
-    claude: ClaudeColor,
-    codex: CodexColor,
-    cursor: CursorMono,
-    gemini: GeminiColor,
-    opencode: OpenCodeMono,
+const FLAVOR_BADGES: Record<string, { label: string; colors: string }> = {
+    claude: {
+        label: 'Cl',
+        colors: 'bg-[#d97706] text-white',
+    },
+    codex: {
+        label: 'Cx',
+        colors: 'bg-[#111827] text-white',
+    },
+    cursor: {
+        label: 'Cu',
+        colors: 'bg-[#0f766e] text-white',
+    },
+    gemini: {
+        label: 'Gm',
+        colors: 'bg-[#2563eb] text-white',
+    },
+    opencode: {
+        label: 'Op',
+        colors: 'bg-[#15803d] text-white',
+    },
 }
 
 function FlavorIcon({ flavor, className }: { flavor?: string | null; className?: string }) {
-    const Icon = FLAVOR_ICONS[(flavor ?? 'claude').toLowerCase()]
-    if (!Icon) return <ClaudeColor className={className} />
-    return <Icon className={className} />
+    const badge = FLAVOR_BADGES[(flavor ?? 'claude').trim().toLowerCase()] ?? FLAVOR_BADGES.claude
+    return (
+        <span
+            aria-hidden="true"
+            className={`inline-flex items-center justify-center rounded-sm text-[8px] font-semibold leading-none ${badge.colors} ${className ?? 'h-4 w-4'}`}
+        >
+            {badge.label}
+        </span>
+    )
 }
 
 function MachineIcon(props: { className?: string }) {
@@ -341,7 +350,6 @@ function SessionItem(props: {
     })
 
     const sessionName = getSessionTitle(s)
-    const modelLabel = getSessionModelLabel(s)
     const todoProgress = getTodoProgress(s)
     return (
         <>
