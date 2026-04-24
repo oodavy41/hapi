@@ -13,8 +13,13 @@ import { isClaudeModelPreset } from '@hapi/protocol'
 const CONTEXT_HEADROOM_TOKENS = 10_000
 const DEFAULT_CLAUDE_CONTEXT_WINDOW_TOKENS = 200_000
 const LARGE_CLAUDE_CONTEXT_WINDOW_TOKENS = 1_000_000
+const DEFAULT_CODEX_CONTEXT_WINDOW_TOKENS = 258_400
 
 export function getContextBudgetTokens(model: string | null | undefined, flavor?: string | null): number | null {
+    if (flavor === 'codex') {
+        return Math.max(1, DEFAULT_CODEX_CONTEXT_WINDOW_TOKENS - CONTEXT_HEADROOM_TOKENS)
+    }
+
     if (flavor !== 'claude') {
         return null
     }

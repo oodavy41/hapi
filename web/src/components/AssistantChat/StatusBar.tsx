@@ -116,6 +116,12 @@ function getContextWarning(contextSize: number, maxContextSize: number, t: (key:
     }
 }
 
+function formatTokenCount(value: number): string {
+    if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
+    if (value >= 1_000) return `${Math.round(value / 1_000)}k`
+    return String(value)
+}
+
 export function StatusBar(props: {
     active: boolean
     thinking: boolean
@@ -143,6 +149,13 @@ export function StatusBar(props: {
         },
         [props.contextSize, props.model, props.agentFlavor, t]
     )
+    const contextUsageLabel = useMemo(() => {
+        if (props.contextSize === undefined) return null
+        const maxContextSize = getContextBudgetTokens(props.model, props.agentFlavor)
+        if (!maxContextSize) return `ctx ${formatTokenCount(props.contextSize)}`
+        const percentageUsed = Math.min(999, Math.round((props.contextSize / maxContextSize) * 100))
+        return `ctx ${formatTokenCount(props.contextSize)}/${formatTokenCount(maxContextSize)} (${percentageUsed}%)`
+    }, [props.contextSize, props.model, props.agentFlavor])
 
     const permissionMode = props.permissionMode
     const displayPermissionMode = permissionMode
@@ -172,9 +185,9 @@ export function StatusBar(props: {
                         {connectionStatus.text}
                     </span>
                 </div>
-                {contextWarning ? (
-                    <span className={`text-[10px] ${contextWarning.color}`}>
-                        {contextWarning.text}
+                {contextUsageLabel ? (
+                    <span className={`text-[10px] ${contextWarning?.color ?? 'text-[var(--app-hint)]'}`}>
+                        {contextUsageLabel}{contextWarning ? ` · ${contextWarning.text}` : ''}
                     </span>
                 ) : null}
             </div>

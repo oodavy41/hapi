@@ -409,6 +409,8 @@ class CodexRemoteLauncher extends RemoteLauncherBase {
                     delete output.type;
                     delete output.call_id;
                     delete output.callId;
+                    output.stdout = output.output;
+                    delete output.output;
 
                     session.sendAgentMessage({
                         type: 'tool-call-result',
