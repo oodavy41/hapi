@@ -44,7 +44,10 @@ function normalizeCodexTokenUsage(value: unknown) {
         input_tokens: inputTokens,
         output_tokens: outputTokens,
         cache_creation_input_tokens: asNumber(total.cacheCreationInputTokens ?? total.cache_creation_input_tokens) ?? undefined,
-        cache_read_input_tokens: asNumber(total.cachedInputTokens ?? total.cacheReadInputTokens ?? total.cache_read_input_tokens) ?? undefined
+        // Codex `inputTokens` already includes cached tokens. Keep cached details
+        // in the token-count event payload, but do not add them to usage or the
+        // context bar will double-count context.
+        cache_read_input_tokens: undefined
     }
 }
 

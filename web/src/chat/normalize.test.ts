@@ -450,8 +450,7 @@ describe('normalizeDecryptedMessage', () => {
             },
             usage: {
                 input_tokens: 82503,
-                output_tokens: 166,
-                cache_read_input_tokens: 71808
+                output_tokens: 166
             }
         })
     })
