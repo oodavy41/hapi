@@ -35,19 +35,28 @@ function normalizeAgentEvent(value: unknown): AgentEvent | null {
 function normalizeCodexTokenUsage(value: unknown) {
     const info = isObject(value) ? value : null
     if (!info) return null
-    const total = isObject(info.total) ? info.total : info
-    const inputTokens = asNumber(total.inputTokens ?? total.input_tokens)
-    const outputTokens = asNumber(total.outputTokens ?? total.output_tokens)
+    // Codex reports both:
+    // - `total`: cumulative usage for the whole session (can be millions).
+    // - `last`: current turn/request usage, which matches the live context bar.
+    // Prefer `last`; falling back to `total` keeps older payloads working.
+    const usageSource = isObject(info.last)
+        ? info.last
+        : isObject(info.total)
+            ? info.total
+            : info
+    const inputTokens = asNumber(usageSource.inputTokens ?? usageSource.input_tokens)
+    const outputTokens = asNumber(usageSource.outputTokens ?? usageSource.output_tokens)
     if (inputTokens === null || outputTokens === null) return null
 
     return {
         input_tokens: inputTokens,
         output_tokens: outputTokens,
-        cache_creation_input_tokens: asNumber(total.cacheCreationInputTokens ?? total.cache_creation_input_tokens) ?? undefined,
-        // Codex `inputTokens` already includes cached tokens. Keep cached details
-        // in the token-count event payload, but do not add them to usage or the
-        // context bar will double-count context.
-        cache_read_input_tokens: undefined
+        // Codex `inputTokens` already includes cached input tokens; expose cache
+        // hits for display, but use `context_tokens` to avoid double-counting.
+        cache_creation_input_tokens: undefined,
+        cache_read_input_tokens: asNumber(usageSource.cachedInputTokens ?? usageSource.cacheReadInputTokens ?? usageSource.cache_read_input_tokens) ?? undefined,
+        context_tokens: inputTokens,
+        context_window: asNumber(info.modelContextWindow ?? info.model_context_window) ?? undefined
     }
 }
 
