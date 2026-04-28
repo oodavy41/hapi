@@ -32,6 +32,22 @@ function normalizeAgentEvent(value: unknown): AgentEvent | null {
     return value as AgentEvent
 }
 
+function normalizeCodexTokenUsage(value: unknown) {
+    const info = isObject(value) ? value : null
+    if (!info) return null
+    const total = isObject(info.total) ? info.total : info
+    const inputTokens = asNumber(total.inputTokens ?? total.input_tokens)
+    const outputTokens = asNumber(total.outputTokens ?? total.output_tokens)
+    if (inputTokens === null || outputTokens === null) return null
+
+    return {
+        input_tokens: inputTokens,
+        output_tokens: outputTokens,
+        cache_creation_input_tokens: asNumber(total.cacheCreationInputTokens ?? total.cache_creation_input_tokens) ?? undefined,
+        cache_read_input_tokens: asNumber(total.cachedInputTokens ?? total.cacheReadInputTokens ?? total.cache_read_input_tokens) ?? undefined
+    }
+}
+
 function normalizePlanStatus(value: unknown): 'pending' | 'in_progress' | 'completed' {
     const raw = typeof value === 'string' ? value.trim().toLowerCase().replace(/[\s-]/g, '_') : ''
     if (raw === 'completed' || raw === 'complete' || raw === 'done') return 'completed'
@@ -413,6 +429,23 @@ export function normalizeAgentRecord(
                 content: [{ type: 'reasoning', text: data.message, uuid: messageId, parentUUID: null }],
                 meta
             }
+        }
+
+        if (data.type === 'token_count') {
+            const usage = normalizeCodexTokenUsage(data.info)
+            return usage ? {
+                id: messageId,
+                localId,
+                createdAt,
+                role: 'event',
+                content: {
+                    type: 'token-count',
+                    info: data.info
+                },
+                isSidechain: false,
+                meta,
+                usage
+            } : null
         }
 
         if (data.type === 'tool-call' && typeof data.callId === 'string') {

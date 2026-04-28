@@ -422,4 +422,38 @@ describe('normalizeDecryptedMessage', () => {
         })
     })
 
+    it('normalizes Codex token_count as usage data for context display', () => {
+        const message = makeMessage({
+            role: 'agent',
+            content: {
+                type: 'codex',
+                data: {
+                    type: 'token_count',
+                    info: {
+                        total: {
+                            inputTokens: 82_503,
+                            cachedInputTokens: 71_808,
+                            outputTokens: 166
+                        },
+                        modelContextWindow: 258_400
+                    }
+                }
+            }
+        })
+
+        const normalized = normalizeDecryptedMessage(message)
+
+        expect(normalized).toMatchObject({
+            role: 'event',
+            content: {
+                type: 'token-count'
+            },
+            usage: {
+                input_tokens: 82503,
+                output_tokens: 166,
+                cache_read_input_tokens: 71808
+            }
+        })
+    })
+
 })
