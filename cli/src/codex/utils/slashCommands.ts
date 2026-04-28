@@ -9,6 +9,7 @@ const REASONING_EFFORTS = new Set<ReasoningEffort>(['none', 'minimal', 'low', 'm
 const UNSUPPORTED_CODEX_BUILTIN_COMMANDS = new Set([
     'clear',
     'compact',
+    'compat',
     'diff',
     'init',
     'login',
@@ -18,6 +19,7 @@ const UNSUPPORTED_CODEX_BUILTIN_COMMANDS = new Set([
     'prompts',
     'quit',
     'redo',
+    'review',
     'undo'
 ]);
 

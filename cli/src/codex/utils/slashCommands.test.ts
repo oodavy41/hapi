@@ -60,9 +60,24 @@ describe('resolveCodexSlashCommand', () => {
     });
 
     it('handles unsupported Codex built-in commands instead of sending them to the model', () => {
-        expect(resolveCodexSlashCommand('/diff', state)).toEqual({
-            kind: 'handled',
-            message: '/diff is a Codex CLI command that is not supported in HAPI sessions yet.'
+        for (const command of ['diff', 'undo', 'review', 'compat']) {
+            expect(resolveCodexSlashCommand(`/${command}`, state)).toEqual({
+                kind: 'handled',
+                message: `/${command} is a Codex CLI command that is not supported in HAPI sessions yet.`
+            });
+        }
+    });
+
+    it('expands custom prompts before checking unsupported built-in names', () => {
+        expect(resolveCodexSlashCommand('/review src/index.ts', {
+            ...state,
+            commands: [
+                { name: 'review', source: 'project', content: 'Review this code.' }
+            ]
+        })).toEqual({
+            kind: 'replace',
+            text: 'Review this code.\n\nUser arguments: src/index.ts',
+            message: 'Expanded /review'
         });
     });
 
